@@ -1,131 +1,237 @@
 <style>
-  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; padding: 20px; }
-  h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
-  .version { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 30px; }
-  h2 { border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-top: 30px; color: #2c3e50; }
-  h3 { color: #18bc9c; margin-top: 20px; border-left: 4px solid #18bc9c; padding-left: 10px; }
-  .box { background: #f8f9fa; border-left: 5px solid #18bc9c; padding: 15px; margin: 20px 0; border-radius: 0 5px 5px 0; }
-  .math-block { font-family: "Times New Roman", Times, serif; font-size: 1.1em; background: #fff; padding: 15px; border: 1px solid #ddd; text-align: center; margin: 10px 0; border-radius: 5px; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.65; padding: 20px; }
+  h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-weight: 700; }
+  .version { text-align: center; color: #7f8c8d; font-size: 0.95em; margin-bottom: 30px; }
+  h2 { border-bottom: 2px solid #2c3e50; padding-bottom: 8px; margin-top: 35px; color: #2c3e50; font-weight: 600; }
+  h3 { color: #18bc9c; margin-top: 22px; border-left: 4px solid #18bc9c; padding-left: 10px; font-size: 1.15em; }
+  .box { background: #f8f9fa; border-left: 5px solid #18bc9c; padding: 15px 18px; margin: 18px 0; border-radius: 0 5px 5px 0; }
+  .box-warn { background: #fef9e7; border-left: 5px solid #f39c12; padding: 15px 18px; margin: 18px 0; border-radius: 0 5px 5px 0; }
+  .box-exp { background: #eef6ff; border-left: 5px solid #2980b9; padding: 12px 16px; margin: 15px 0; border-radius: 0 5px 5px 0; font-size: 0.92em; }
+  .math-block { font-family: "Times New Roman", Times, serif; font-size: 1.12em; background: #fff; padding: 12px 15px; border: 1px solid #ddd; text-align: center; margin: 12px 0; border-radius: 5px; }
   .format-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #fff; font-size: 0.9em; }
   .format-table th, .format-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-  .format-table th { background-color: #f2f2f2; color: #2c3e50; }
+  .format-table th { background-color: #f2f2f2; color: #2c3e50; font-weight: 600; }
+  .guide-table td { text-align: left !important; }
   .important { color: #e74c3c; font-weight: bold; }
-  .highlight { background-color: #e8f8f5; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
-  .badge { display: inline-block; padding: 3px 7px; background: #34495e; color: #fff; border-radius: 3px; font-size: 0.8em; margin-right: 5px; }
+  .highlight { background-color: #e8f8f5; padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #117864; }
+  .badge { display: inline-block; padding: 3px 8px; background: #2c3e50; color: #fff; border-radius: 3px; font-size: 0.8em; margin-right: 6px; vertical-align: middle; }
+  .badge-exp { display: inline-block; padding: 2px 6px; background: #7f8c8d; color: #fff; border-radius: 3px; font-size: 0.75em; margin-left: 6px; vertical-align: middle; }
 </style>
 
-<div class="container">
+<div class="container-fluid" style="max-width: 1050px; margin: 0 auto;">
 
-  <h1>BASIN User Guide</h1>
-  <div class="version">Bayesian Sediment Source Apportionment Tool | Documentation</div>
-  
-  <p><strong>BASIN</strong> is a state-of-the-art modular framework for robust sediment source fingerprinting. Built on the <strong>Stan</strong> probabilistic programming language (utilizing the Hamiltonian Monte Carlo algorithm), it overcomes traditional equifinality traps by evaluating structural geochemical covariance and dynamically correcting for non-conservative tracer behavior.</p>
+  <h1>BASIN User Guide &amp; Mathematical Reference</h1>
+  <div class="version">Bayesian Sediment Source Apportionment Tool | Context-Dependent Modular Framework (Stan &amp; R/Shiny)</div>
 
-  <!-- Section: Data Format -->
-  <h2>1. Input Data Format</h2>
-  <p>Your basic CSV file must follow a standard structure. The first two columns are fixed as identifiers:</p>
-  
+  <p><strong>BASIN</strong> is an open-source, modular Bayesian modeling framework for robust sediment source fingerprinting (SSF). Built on the <strong>Stan</strong> probabilistic programming language (utilizing Hamiltonian Monte Carlo and the No-U-Turn Sampler, HMC/NUTS), BASIN is designed around the principle of <em>context-dependent modularity</em>: because no single statistical parameterization is universally optimal across contrasting sampling designs and simplex geometries, BASIN exposes four independently configurable design axes—<strong>information sharing (pooling)</strong>, <strong>residual error-scale &amp; covariance architecture</strong>, <strong>source end-member representation</strong>, and <strong>non-conservatism buffering</strong>.</p>
+
+  <!-- Section 1: Data Format -->
+  <h2>1. Input Data Format &amp; Role Assignment</h2>
+  <p>Your input dataset must be a standard comma-separated values (<code>*.csv</code>) file containing unique sample identifiers, class labels (source groups and target mixtures), and numeric columns of tracer properties (e.g., elemental geochemistry, colorimetric indices, fallout radionuclides, mineral magnetics, stable isotopes, or organic parameters):</p>
+
   <table class="format-table">
     <thead>
       <tr>
-        <th>Col 1: ID</th>
-        <th>Col 2: Group/Source</th>
-        <th>Col 3...N: Variables</th>
+        <th>Column 1: Sample ID</th>
+        <th>Column 2: Group / Source Class</th>
+        <th>Optional Covariate / Proxy Columns</th>
+        <th>Columns K...N: Candidate Tracers</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Sample ID (e.g., <i>S_01</i>)</td>
-        <td>Source Category (e.g., <i>Forest</i>)</td>
-        <td>Tracer concentrations (Fe, Zn, Al...)</td>
+        <td><code>S_01</code></td>
+        <td><i>Forest</i></td>
+        <td>Sorting Proxy (e.g., SSA, <i>d</i><sub>50</sub>, TOC)</td>
+        <td>Numeric tracer values (Al, Ti, L*, <sup>137</sup>Cs...)</td>
       </tr>
       <tr>
-        <td colspan="3" style="background: #fdfefe; font-style: italic;">... multiple source rows ...</td>
+        <td colspan="4" style="background: #fdfefe; font-style: italic;">... multiple rows characterizing each potential source group ...</td>
       </tr>
       <tr style="background: #fff9c4;">
-        <td>Mix_Sample_A</td>
-        <td><strong>Target label (Mix)</strong></td>
-        <td>Concentrations in the mixture</td>
+        <td><code>Mix_01</code></td>
+        <td><strong>Target Mixture Label (e.g., <i>Mix</i>)</strong></td>
+        <td>Proxy value &amp; optional Grouping Factor (e.g., <i>Season</i> / <i>CoreLayer</i>)</td>
+        <td>Observed tracer values in the target mixture</td>
       </tr>
     </tbody>
   </table>
 
   <div class="box">
-    <strong>Dynamic Column Handling:</strong> Columns selected as an <i>SSA Proxy</i> (e.g., Specific Surface Area) or <i>Grouping Covariates</i> (for hierarchical modeling) are automatically excluded from the tracer matrix to prevent mathematical redundancy.
+    <strong>Automatic Column Exclusion:</strong> Any column assigned as a <i>Sorting / Enrichment Proxy</i> or a <i>Mixture Grouping Covariate</i> in Section 1 of the sidebar is automatically excluded from the candidate tracer pool to prevent mathematical redundancy.
   </div>
 
-  <!-- Section: Pre-filtering -->
+  <!-- Section 2: Pre-filtering -->
   <h2>2. Intelligent Tracer Pre-Filtering</h2>
-  <p>Instead of rigid statistical exclusion that destroys multidimensional geometry, BASIN offers a 4-step intelligent pre-filtering module to safely remove strictly non-conservative tracers while retaining covariance structures:</p>
+  <p>Overly rigid univariate filtering can dismantle the multidimensional geometry of catchment sources and force unmixing models into geometric equifinality. BASIN implements a sequential, geometry-preserving pre-filtering pipeline:</p>
   <ul>
-    <li><strong>Modified SSA-Aware Range Test:</strong> Dynamically checks ranges considering granulometric shifts.</li>
-    <li><strong>Geochemical Association Preservation Test (GAPT):</strong> Retains tracers if they preserve at least 50% of their structural pairwise correlations (isomorphic pairs/sorption complexes) during transit.</li>
-    <li><strong>PCA Convex Hull Penalty:</strong> An <i>n</i>-dimensional outlier detection mechanism to drop tracers pulling mixtures outside the physically robust mixing polygon.</li>
-    <li><strong>KW + CORR:</strong> Standard Kruskal-Wallis discrimination test combined with a strict multicollinearity purge (cutoff > 0.95).</li>
+    <li><strong>Proxy-Aware 1D Range Test:</strong> Evaluates whether target mixture means fall within the source min–max envelope (expanded by a 5% tolerance), optionally normalizing mixture values by the sorting proxy enrichment factor (<i>Proxy<sub>mix</sub> / Proxy<sub>src</sub></i>). Selectable strictness modes: <i>Raw only</i>, <i>Proxy-normalized</i>, <i>Strict (Both)</i>, or <i>Lenient (Either)</i>.</li>
+    <li><strong>Inter-Tracer Association Preservation Test (APT / GAPT) <i>[Optional]</i>:</strong> Identifies strongly co-migrating tracer pairs within the source domain (Spearman |&rho;| &gt; 0.85) and projects robust linear regressions (RLM/OLS) onto the targets. A tracer is excluded as strictly non-conservative if &ge; 50% of its structural links exhibit relative prediction errors exceeding 10%.</li>
+    <li><strong>Multivariate PCA Convex-Hull Leverage Filter <i>[Optional]</i>:</strong> Computes the dimensionless displacement penalty <i>L = D / R</i> of target mixtures relative to the 2D Principal Component (PC1–PC2) source convex hull. If <i>L<sub>base</sub></i> &gt; 1.2, an iterative drop-out routine removes individual tracers whose exclusion pulls the mixtures back toward the source hull by &gt; 5% (<i>L<sub>&minus;t</sub> &lt; 0.95 &middot; L<sub>base</sub></i>).</li>
+    <li><strong>Kruskal–Wallis &amp; Collinearity Pruning:</strong> Retains only tracers demonstrating statistically significant inter-source discrimination (non-parametric Kruskal–Wallis test, <i>p &lt; 0.05</i>) and purges near-duplicate signals (|&rho;| &gt; 0.95).</li>
   </ul>
 
-  <!-- Section: Configuration -->
-  <h2>3. Model Core & Covariance Architecture</h2>
-  <p>BASIN avoids the "independent tracer" assumption by allowing you to explicitly model geochemical structural signals. Choose one of the core error structures:</p>
+  <!-- Section 3: The 4 Design Axes -->
+  <h2>3. Model Constructor: Four Configurable Design Axes</h2>
+  <p>In baseline conservative form, BASIN models the expected tracer vector <b>&mu;</b><sub><i>f,i</i></sub> in mixture <i>i</i> as a linear convex combination of latent source vectors weighted by simplex proportions <b>P</b><sub><i>i</i></sub> (&sum;<sub><i>g</i></sub> <i>P<sub>i,g</sub></i> = 1, <i>P<sub>i,g</sub></i> &ge; 0). Target observations are evaluated under a heavy-tailed <strong>multivariate Student's <i>t</i>-distribution (&nu; = 4)</strong> to automatically downweight erratic biogeochemical or analytical outliers:</p>
 
-  <ul>
-    <li><strong>Independent (Fastest):</strong> Covariance matrix is strictly diagonal. Elements are treated as independent random variables (similar to classic models).</li>
-    <li><strong>Mixture Covariance (Recommended):</strong> Estimates a multidimensional residual covariance structure for target mixtures via Cholesky decomposition, extracting elemental co-migration patterns directly from the ensemble.</li>
-    <li><strong>Full Bayes:</strong> The most comprehensive mode, evaluating multi-dimensional tracer covariance matrices simultaneously within both the target mixtures and the source groups.</li>
-  </ul>
-
-  <h2>4. Advanced Computational Modules</h2>
-  <p>Tailor the mathematical complexity of the dynamically compiled Stan code to your specific dataset challenges:</p>
-
-  <h3><span class="badge">H</span> Hierarchical Logic & Spatial Priors</h3>
-  <p>For spatiotemporal decomposition (e.g., flood seasons or sediment core horizons), individual mixture proportions are centered on a higher-level global vector using Dirichlet distributions. <strong>Prior Geographical Weights</strong> (e.g., connectivity indices or sub-basin areas) can be explicitly integrated into the global Dirichlet hyperparameters.</p>
-
-  <h3><span class="badge">B</span> Beta-Correction (Particle Size/Sorting)</h3>
-  <p>Applies a non-linear, tracer-specific exponential correction directly within the MCMC sampler to compensate for hydrodynamic sorting, tied to the standardized Z-score of the Specific Surface Area (SSA) proxy.</p>
   <div class="math-block">
-    &mu;<sub>corrected</sub> = &mu;<sub>source</sub> &middot; exp(&beta;<sub>sorting</sub> &middot; (SSA<sub>mix</sub> - SSA<sub>source_avg</sub>))
+    <b>y</b><sub>mix,<i>i</i></sub> &sim; &#119983;(&nu; = 4, &nbsp;<b>&mu;</b><sub><i>f,i</i></sub>, &nbsp;<b>&Sigma;</b><sub>mix,<i>i</i></sub>), &nbsp;&nbsp;&nbsp;where &nbsp;&mu;<sub><i>f,i,t</i></sub> = &sum;<sub><i>g</i>=1</sub><sup><i>G</i></sup> <i>P<sub>i,g</sub></i> &middot; &mu;<sub>source,<i>g,t</i></sub>
   </div>
 
-  <h3><span class="badge">CoDA</span> Compositional Data Analysis (ILR)</h3>
-  <p>Maps closed relative data (summing to 100%) into an open Euclidean space using an <strong>Isometric Log-Ratio (ILR)</strong> transformation. This eliminates spurious correlations inherent to closed systems. <i>Note: Use cautiously on heavily non-conservative or hydrodynamically sorted datasets where the linear mixing assumption in log-ratio space may be violated.</i></p>
-
-  <h3><span class="badge">Bias</span> Robust Bayesian Bias Absorption</h3>
-  <p>Introduces a random displacement vector (math sponge) utilizing a heavy-tailed Student's t-distribution. It mathematically absorbs systematic measurement errors, redox-mobility chaotic noise, or signals from unsampled "ghost" erosion hotspots, preventing them from skewing the proportions of known sources.</p>
-
-  <!-- Section: Reconstruction -->
-  <h2>5. Mass-Balance & Out-of-Sample Performance</h2>
-  <p>BASIN natively integrates tools to ensure both internal mathematical convergence and external physical truth:</p>
+  <h3><span class="badge">Axis 3.1</span> Cross-Sample Information Sharing (Pooling Modes)</h3>
   <ul>
-    <li><strong>Reconstruction (SMAPE):</strong> Evaluates how well the estimated source proportions mathematically reconstruct the target mixture's tracer values.</li>
-    <li><strong>PSIS-LOO Cross-Validation:</strong> Pareto Smoothed Importance Sampling Leave-One-Out cross-validation. Estimates the out-of-sample predictive accuracy (ELPD) directly from posterior simulations to help you objectively select the most parsimonious model configuration without overfitting.</li>
+    <li><strong>Hierarchical Partial Pooling (Default for Ensembles):</strong> Parameterizes mixture proportions via a multi-level Dirichlet hierarchy centered on group-level (<b>P</b><sub>level</sub>) or catchment-level global proportions (<b>P</b><sub>global</sub>):
+      <div class="math-block">
+        <b>P</b><sub>ind,<i>i</i></sub> &sim; Dirichlet(<b>P</b><sub>global</sub> &middot; &phi;<sub>ind</sub>), &nbsp;&nbsp;&nbsp;&phi;<sub>ind</sub> &sim; Gamma(2, 0.1)
+      </div>
+      Partial pooling suppresses localized sampling noise and acts as a powerful computational accelerator for NUTS sampling. However, it is a <em>double-edged sword</em>: in event-dominated sediment cores, pooling shrinks rare, high-amplitude flood or typhoon pulses toward the background catchment mean.
+    </li>
+    <li><strong>Non-Hierarchical / Isolated Proportions (No Pooling):</strong> Assigns strictly independent priors <b>P</b><sub>ind,<i>i</i></sub> &sim; Dirichlet(<b>&alpha;</b>) to each sample. When analyzing an ensemble (<i>N</i><sub>mix</sub> &gt; 1), residual error parameters are still learned jointly without shrinking individual proportions. When analyzing a single mixture (<i>N</i><sub>mix</sub> = 1), this yields <strong>strictly isolated inference</strong> with zero cross-sample borrowing of strength.</li>
+    <li><strong>Complete Pooling:</strong> Estimates a single shared proportion vector <b>P</b> across all target rows (appropriate strictly for technical replicates of a single homogeneous event).</li>
   </ul>
 
-  <!-- Section: Validation -->
-  <h2>6. Validation (Virtual Mixtures)</h2>
-  <p>To verify the model's structural accuracy, use the Validation tab to generate stochastic virtual mixtures. This respects natural source covariance (drawing from multivariate distributions rather than simple means) across the entire simplex.</p>
-  
+  <h3><span class="badge">Axis 3.2a</span> Residual Error-Scale Specification</h3>
+  <p>The parameterization of the diagonal scale vector <b>&sigma;</b><sub>tot,<i>i</i></sub> governing <b>&Sigma;</b><sub>mix,<i>i</i></sub> is the first-order determinant of single-mixture accuracy:</p>
+  <ul>
+    <li><strong>1. Free Regularized Scales (Adaptive M-Estimator, Default):</strong> Assigns each tracer an independent residual scale anchored by a zero-peaked Half-Student-<i>t</i> prior on standardized data:
+      <div class="math-block">
+        &sigma;<sub>tot,<i>i,t</i></sub> = &sigma;<sub>mix,<i>t</i></sub>, &nbsp;&nbsp;&nbsp;&sigma;<sub>mix,<i>t</i></sub> &sim; Half-Student-<i>t</i>(3, 0, &sigma;<sub>prior</sub> = 1.0)
+      </div>
+      Decoupling &sigma;<sub>tot</sub> from <i>P<sub>i,g</sub></i><sup>2</sup> eliminates the mathematical penalty against pure end-members (<i>P<sub>g</sub></i> = 0 or 1), preventing centroid shrinkage on boundary-rich, multi-source mixtures while remaining well-identified even at <i>N</i><sub>mix</sub> = 1.
+    </li>
+    <li><strong>2. Process-Error Only (Source-Variance Propagated):</strong> Deterministically propagates intra-source variances &sigma;<sup>2</sup><sub>src,<i>g,t</i></sub> into the mixture likelihood without estimating free residual scales:
+      <div class="math-block">
+        &sigma;<sub>tot,<i>i,t</i></sub> = &radic;<span style="text-decoration: overline;">&sum;<sub><i>g</i>=1</sub><sup><i>G</i></sup> <i>P<sub>i,g</sub></i><sup>2</sup> &middot; &sigma;<sup>2</sup><sub>src,<i>g,t</i></sub></span>
+      </div>
+      Because the log-likelihood normalization term &minus;&frac12;&sum;<sub><i>t</i></sub> ln(&sum;<sub><i>g</i></sub> <i>P<sub>g</sub></i><sup>2</sup>&sigma;<sup>2</sup><sub>src,<i>g,t</i></sub>) is maximized at <i>P<sub>g</sub></i> = 1/<i>G</i>, this mode induces centroid shrinkage on boundary mixtures, but provides superior interval calibration on <em>interior-dominated, two-source mixtures</em> with strongly heterogeneous source variances.
+    </li>
+  </ul>
+
+  <h3><span class="badge">Axis 3.2b</span> Inter-Tracer Covariance Architecture</h3>
+  <ul>
+    <li><strong>Independent (Diagonal Error Matrix):</strong> <b>&Sigma;</b><sub>mix,<i>i</i></sub> = diag(<b>&sigma;</b><sup>2</sup><sub>tot,<i>i</i></sub>). Fastest execution; treats tracers as conditionally independent.</li>
+    <li><strong>Target Mixture Covariance (Recommended for Ensembles):</strong> Factorizes the residual covariance via a Cholesky correlation factor regularized by an LKJ prior:
+      <div class="math-block">
+        <b>&Sigma;</b><sub>mix,<i>i</i></sub> = diag(<b>&sigma;</b><sub>tot,<i>i</i></sub>) &middot; <b>L</b><sub>&Omega;</sub><b>L</b><sub>&Omega;</sub><sup>&top;</sup> &middot; diag(<b>&sigma;</b><sub>tot,<i>i</i></sub>), &nbsp;&nbsp;&nbsp;<b>L</b><sub>&Omega;</sub> &sim; LKJ<sub>corr</sub>(4)
+      </div>
+      Extracts co-migration patterns directly from target ensembles (<i>N</i><sub>mix</sub> &gt; 1) or applies soft LKJ regularization at <i>N</i><sub>mix</sub> = 1.
+    </li>
+    <li><strong>Full Bayes (Source + Mixture Covariance, Ideal for <i>N</i><sub>mix</sub> = 1):</strong> Simultaneously models source observations via group-specific multivariate normal distributions <b>y</b><sub>source,<i>j</i></sub> &sim; MVN(<b>&mu;</b><sub>source,<i>g</i></sub>, <b>&Sigma;</b><sub>src,<i>g</i></sub>) with Cholesky factors <b>L</b><sub>&Omega;,src,<i>g</i></sub> &sim; LKJ<sub>corr</sub>(2). Propagating empirical source covariance provides decisive structural regularization for isolated targets (<i>N</i><sub>mix</sub> = 1).</li>
+  </ul>
+
+  <h3><span class="badge">Axis 3.3</span> Source End-Member Representation</h3>
+  <ul>
+    <li><strong>Parametric Group Centroids (Standard):</strong> Represents each source group by its latent multivariate mean vector <b>&mu;</b><sub>source,<i>g</i></sub>.</li>
+    <li><strong>Sub-Sampled Erosion Hotspots (Hybrid: Free Scale + SD<sup>2</sup> / <i>k</i>)</strong> <span class="badge-exp">Experimental Preview</span>: Scales propagated intra-source variance by <i>k</i> active sub-samples (&sigma;<sup>2</sup><sub>src,<i>g,t</i></sub> / <i>k</i>) alongside free residual scales.</li>
+    <li><strong>Discrete Sample Simplex (Nested Convex Hull)</strong> <span class="badge-exp">Experimental Preview</span>: Models each mixture as a non-parametric convex combination of individual source samples within each group via softmax-transformed latent weights &eta;<sub>sub</sub>.</li>
+  </ul>
+
+  <h3><span class="badge">Axis 3.4</span> Non-Conservatism, Compositional &amp; Spatial Modules</h3>
+  <ul>
+    <li><strong>Sorting Correction (Beta):</strong> Applies a non-linear exponential correction to source means in raw positive tracer space, tied to the standardized Z-score difference of the sorting proxy between mixture <i>i</i> and source group <i>g</i>:
+      <div class="math-block">
+        &mu;<sub>corr,<i>g,t</i></sub> = &mu;<sub>source,<i>g,t</i></sub> &middot; exp(&beta;<sub>sorting,<i>t</i></sub> &middot; (Proxy<sub>mix,<i>i</i></sub> &minus; <span style="text-decoration: overline;">Proxy</span><sub>source,<i>g</i></sub>)), &nbsp;&nbsp;&nbsp;&beta;<sub>sorting,<i>t</i></sub> &sim; &#119977;(0, 0.2)
+      </div>
+    </li>
+    <li><strong>Systematic Bias Absorption (&delta;<sub>bias</sub>):</strong> Introduces a heavy-tailed displacement vector &delta;<sub>bias,<i>t</i></sub> &sim; &#119983;(3, 0, 0.1) into the mass-balance equation. Together with Beta-correction and the Student-<i>t</i><sub>4</sub> likelihood, this establishes a three-way division of labor: (i) &beta;<sub>sorting</sub> captures proxy-proportional granulometric shifts; (ii) &delta;<sub>bias</sub> isolates ensemble-wide systematic offsets (e.g., heavy-mineral lag or minor unsampled source contributions of &le; 5–10%); and (iii) the heavy &#119983;<sub>4</sub> tails downweight erratic, sample-specific redox or analytical excursions.</li>
+    <li><strong>Compositional Transform (CoDA / ILR):</strong> Maps strictly positive compositional data into an open Euclidean space via an orthonormal Isometric Log-Ratio (ILR) basis matrix <b>V</b>, unmixing in raw proportion space via softmax(<b>V</b><b>&mu;</b><sub>source,<i>g</i></sub>) before projecting back to ILR coordinates. <em>Warning: Do not activate CoDA on datasets affected by uncorrected hydrodynamic sorting, as tracer-specific sorting violates linear mixing in log-ratio space.</em></li>
+    <li><strong>Prior Geographical / Connectivity Weights:</strong> Integrates independent geomorphic information (e.g., source polygon area, RUSLE erosion rate, or Sediment Connectivity Index <i>IC</i>) into the Dirichlet concentration vector <b>&alpha;</b> = <b>w</b><sub>conn</sub> (default <b>w</b><sub>conn</sub> = [1, 1, ...]).</li>
+    <li><strong>Unsampled 'Ghost' Source Detector (<i>G</i> + 1)</strong> <span class="badge-exp">Experimental Preview</span>: Appends a latent (<i>G</i> + 1)-th end-member anchored via outward Frank–Wolfe simplex projection to screen for major missing erosion sources, with orthogonalized bias projection to maintain identifiability.</li>
+  </ul>
+
+  <!-- Section 4: Practitioner Guidelines -->
+  <h2>4. Practitioner Deployment Guidelines</h2>
+  <p>Use the following empirical decision matrix to configure BASIN for your specific study design:</p>
+  <table class="format-table guide-table">
+    <thead>
+      <tr>
+        <th style="width: 28%;">Sampling Design &amp; Regime</th>
+        <th style="width: 22%;">Pooling Mode (Axis 3.1)</th>
+        <th style="width: 25%;">Error Scale &amp; Covariance (Axis 3.2)</th>
+        <th style="width: 25%;">Recommended Buffers (Axis 3.4)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Single conservative or weakly non-conservative target (<i>N</i><sub>mix</sub> = 1)</strong></td>
+        <td>No Pooling (Isolated)</td>
+        <td>Free Regularized Scales + <strong>Full Bayes</strong> Covariance</td>
+        <td>None (keep parsimonious)</td>
+      </tr>
+      <tr>
+        <td><strong>2. Single target with suspected transport sorting / shifts (<i>N</i><sub>mix</sub> = 1)</strong></td>
+        <td>No Pooling (Isolated)</td>
+        <td>Free Regularized Scales + Independent or MixCov</td>
+        <td><strong>Sorting Correction (Beta)</strong> &amp;/or <strong>Bias Absorption</strong> (avoid unbuffered Full Bayes)</td>
+      </tr>
+      <tr>
+        <td><strong>3. Stationary ensemble (replicate traps, background core layers)</strong></td>
+        <td><strong>Hierarchical Partial Pooling</strong></td>
+        <td>Free Scales (or Process-Error if interior-rich) + MixCov</td>
+        <td>Optional; compare via PSIS-LOO</td>
+      </tr>
+      <tr>
+        <td><strong>4. Multi-event ensemble or core with extreme flood/typhoon pulses</strong></td>
+        <td><strong>No Pooling</strong> (preserves pulse amplitude)</td>
+        <td>Free Regularized Scales + MixCov or Full Bayes</td>
+        <td><strong>Bias Absorption</strong> + Beta (if proxy available)</td>
+      </tr>
+      <tr>
+        <td><strong>5. Interior-rich, 2-source design with heterogeneous source variances</strong></td>
+        <td>No Pooling or Hierarchical</td>
+        <td><strong>Process-Error Only</strong> (calibrates 50% CI coverage)</td>
+        <td>None unless sorting is severe</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Section 5: Reconstruction & LOO-CV -->
+  <h2>5. Mass-Balance Reconstruction &amp; Bayesian Model Comparison</h2>
+  <ul>
+    <li><strong>Multi-Tracer Mass-Balance Reconstruction (Tab 4):</strong> Back-calculates expected tracer values from posterior median proportions and reports per-tracer <strong>Mean Bias (%)</strong>, <strong>sMAPE (%)</strong> (Symmetric Mean Absolute Percentage Error), and <strong>Error vs. Source Range (NRMSE<sub>src</sub>, %)</strong>. In models with Beta-correction enabled, toggle between <i>Conservative (No Beta)</i> and <i>Corrected (+Beta Proxy)</i> reconstructions.</li>
+    <li><strong>Bayesian Cross-Validation (Tab 7 — PSIS-LOO &amp; Exact LOO-CV):</strong> Evaluates out-of-sample Expected Log Predictive Density (<code>elpd_loo</code>) to rank competing model configurations fitted to the <em>same dataset, same tracer subset, and same measurement scale</em> (the top-ranked model has <code>elpd_diff = 0</code>).
+      <ul>
+        <li><strong>Pareto <i>k</i> Diagnostics:</strong> Mixtures with Pareto shape <i>k</i> &gt; 0.7 represent highly influential observations or localized geochemical anomalies. When <i>k</i> &gt; 0.7, use <strong>Run Exact LOO-CV</strong> to refit the model holding out one mixture at a time.</li>
+        <li><strong>Interpretational Caveat:</strong> Under <i>No Pooling</i>, each mixture has an independent <b>P</b><sub>ind,<i>i</i></sub>; Exact LOO therefore evaluates prior-predictive generalizability to a new sample rather than conditional within-ensemble interpolation.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <!-- Section 6: Validation -->
+  <h2>6. Validation with Virtual Mixtures</h2>
+  <p>The <strong>Validation (virtual mixtures)</strong> tab generates synthetic mixtures with known ground-truth proportions across four selectable generation regimes:</p>
+  <ol>
+    <li><strong>Full Stochastic (Dirichlet Props + MVN Tracers):</strong> Random Dirichlet proportions paired with source signatures drawn from multivariate normal distributions (respecting empirical source covariance).</li>
+    <li><strong>Semi-Stochastic (Simplex Grid + MVN Tracers):</strong> Regular simplex grid proportions (including pure vertices <i>P<sub>g</sub></i> = 0 and 1) paired with multivariate normal source draws.</li>
+    <li><strong>Semi-Deterministic (Dirichlet Props + Mean Tracers):</strong> Random Dirichlet proportions paired with uniform source group means.</li>
+    <li><strong>Full Deterministic (Simplex Grid + Mean Tracers):</strong> Regular simplex grid proportions paired with uniform source group means.</li>
+  </ol>
+
   <div class="box">
-    <strong>Key Performance Metrics:</strong>
+    <strong>Reported Validation &amp; Calibration Metrics:</strong>
     <ul>
-      <li><span class="highlight">MAE:</span> Mean Absolute Error. Check for accuracy-precision trade-offs.</li>
-      <li><span class="highlight">NSE:</span> Nash-Sutcliffe Efficiency. Evaluates overall model efficiency (>0.50 is good, >0.70 is excellent).</li>
+      <li><span class="highlight">MAE / RMSE / ME / R<sup>2</sup>:</span> Point-estimate inaccuracy, root-mean-square error, signed bias, and linear coefficient of determination between true and posterior median proportions.</li>
+      <li><span class="highlight">CRPS &amp; NSE:</span> Continuous Ranked Probability Score (proper scoring rule evaluating the entire posterior distribution) and Nash–Sutcliffe Efficiency (&gt; 0.50 good, &gt; 0.70 excellent).</li>
+      <li><span class="highlight">W50 / W95 &amp; P50 (adj) / P95 (adj):</span> Mean widths of the 50% and 95% credible intervals and their empirical coverage probabilities incorporating a boundary tolerance of &varepsilon; = 0.015 (accounting for the mathematical constraint that open-simplex MCMC intervals (0, 1) cannot contain exact 0.0 or 1.0 boundary vertices).</li>
+      <li><span class="highlight">CSI (&gt;50%) &amp; HR (&gt;50%):</span> Critical Success Index and Hit Rate for correctly identifying the dominant sediment source (&gt; 50% contribution).</li>
     </ul>
-    <strong>Download:</strong> Export the validation dataset (True vs. Predicted proportions) as a CSV for external reporting.
   </div>
 
-  <!-- Section: Diagnostics -->
-  <h2>7. MCMC Diagnostics & Export</h2>
-  <div class="box">
-    <p>Always verify chain convergence before interpreting source apportionments:</p>
-    <p><strong>Rhat (&Rcirc;):</strong> Should be strictly <strong>&lt; 1.05</strong>. If higher, the Hamiltonian chains have not converged (increase iterations or simplify the model).</p>
-    <p><strong>n_eff:</strong> Effective sample size. Should generally exceed 400-700 to ensure reliable posterior inferences.</p>
+  <!-- Section 7: Diagnostics & Export -->
+  <h2>7. Inference Engine, MCMC Diagnostics &amp; Automated Workspaces</h2>
+  <div class="box-warn">
+    <strong>Mandatory MCMC Convergence Checks (Results Tab):</strong>
+    <ul style="margin-bottom: 0;">
+      <li><strong>Gelman–Rubin Statistic (&Rcirc; / Rhat):</strong> Must be strictly <strong>&lt; 1.05</strong> (ideally &lt; 1.01) across all source proportions.</li>
+      <li><strong>Effective Sample Size (<i>n</i><sub>eff</sub>):</strong> Should exceed <strong>400–700</strong> independent draws. If convergence is poor, increase iterations or simplify the active module combination.</li>
+    </ul>
   </div>
 
-  <p>Results are dynamically saved. Manual export options include:</p>
+  <p>In addition to manual CSV/ZIP download buttons in the interface, BASIN automatically archives every completed model run on disk:</p>
   <ul>
-    <li><strong>Posterior Summaries:</strong> Global and individual apportionment statistics (Means, Medians, CI bounds).</li>
-    <li><strong>Density Plots:</strong> High-quality visualizations of posterior probability distributions.</li>
-    <li><strong>Raw MCMC Chains:</strong> Export full Stan iteration arrays for independent post-hoc auditing.</li>
+    <li><code>BASIN_Workspaces/[Timestamp]_[Model_Tag]/</code>: Stores <code>00_Run_Metadata.csv</code>, <code>01_MCMC_Raw_Chains.csv</code>, <code>02_Stanfit_Object.rds</code>, global posterior density and Beta-coefficient plots (<code>.png</code>), per-chain elapsed times (<code>05_Chain_Times.csv</code>), and <code>06_Aggregated_Summary.csv</code>, while appending run diagnostics to <code>BASIN_Workspaces/Runtime_Log.csv</code>.</li>
+    <li><code>BASIN_Saved_Results/</code>: Exports sample-by-sample mean and median apportionment tables (<code>Results_[Timestamp].csv</code>).</li>
   </ul>
-  
+
 </div>
