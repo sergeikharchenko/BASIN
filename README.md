@@ -36,4 +36,4 @@ If the automatic installation fails (e.g., due to firewall restrictions or lack 
 
 ```R
 install.packages("pacman")
-pacman::p_load(shiny, rstan, tidyverse, caret, reshape2, dplyr, ggplot2, DT, shinythemes, data.table, MASS, zip, compositions, scoringRules)
+pacman::p_load(shiny, rstan, tidyverse, caret, reshape2, dplyr, ggplot2, DT, shinythemes, data.table, MASS, zip, compositions, scoringRules, loo)
